@@ -6,7 +6,11 @@ export async function GET() {
 
   const scrapeUrl =
     "https://venda-imoveis.caixa.gov.br/sistema/busca-imovel.asp?sltTipoBusca=imoveis";
-  const browser = await puppeteer.launch({ headless: true });
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   const page = await browser.newPage();
 
   await page.setUserAgent(
@@ -143,9 +147,9 @@ export async function GET() {
 
     console.log(`⏳  Going to next page...`);
 
-    const nextPageLink = await page.$(
-      `#paginacao a[href*="carregaListaImoveis(${currentPage + 1})"]`
-    );
+    const nextPageLink = await page.$(`
+      #paginacao a[href*="carregaListaImoveis(${currentPage + 1})"]
+    `);
 
     if (nextPageLink) {
       await page.evaluate((link) => link.click(), nextPageLink);
