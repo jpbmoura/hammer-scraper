@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import LoadingMessages from "@/components/ui/loading-message";
 import {
   Table,
@@ -19,25 +21,47 @@ type TableItem = {
 };
 
 const Home = () => {
-  const [loading, setLoading] = React.useState(true);
-  const [tableItems, setTableItems] = React.useState<TableItem[]>();
+  const [loading, setLoading] = React.useState(false);
+  const [tableItems, setTableItems] = React.useState<TableItem[]>([]);
+
+  const [uf, setUf] = React.useState("");
+  const [city, setCity] = React.useState("");
 
   const handleScrape = async () => {
-    const response = await fetch("/api/scraper");
+    setLoading(true);
+    const response = await fetch(`/api/scraper?uf=${uf}&city=${city}`);
+    if (!response.ok) {
+      setLoading(false);
+      return;
+    }
     const data = await response.json();
     setTableItems(data.results);
     setLoading(false);
   };
 
-  React.useEffect(() => {
-    handleScrape();
-  }, []);
-
   return (
     <div className="items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <h1 className="text-4xl font-bold text-start w-full mb-10">
-        🔨 Hammer - Leilões de Imóveis (Arcoverde)
+        🔨 Hammer - Leilões de Imóveis
       </h1>
+
+      <div className="flex flex-row gap-4 justify-self-start md:px-10 px-0 mb-10">
+        <Input
+          disabled={loading}
+          placeholder="UF"
+          value={uf}
+          onChange={(e) => setUf(e.target.value.toUpperCase())}
+        />
+        <Input
+          disabled={loading}
+          placeholder="CIDADE"
+          value={city}
+          onChange={(e) => setCity(e.target.value.toUpperCase())}
+        />
+        <Button disabled={loading} onClick={() => handleScrape()}>
+          Buscar
+        </Button>
+      </div>
 
       <div className="w-full">
         {loading ? (
@@ -45,7 +69,9 @@ const Home = () => {
         ) : (
           <Table className="w-full items-center justify-items-center">
             <TableCaption>
-              Tabela com imóveis em leilão (caixa) - Arcoverde
+              {tableItems.length === 0
+                ? "Faça uma pesquisa válida para continuar."
+                : `Tabela com imóveis em leilão (caixa) - ${city}/${uf}`}
             </TableCaption>
             <TableHeader>
               <TableRow>

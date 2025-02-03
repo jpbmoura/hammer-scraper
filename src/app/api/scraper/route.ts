@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const uf = searchParams.get("uf") || "PE";
+  const city = searchParams.get("city") || "ARCOVERDE";
+
   console.log(`⛏  Starting scrapper`);
 
   const scrapeUrl =
@@ -23,7 +27,7 @@ export async function GET() {
 
   console.log(`⏳  Selecting state...`);
   await page.waitForSelector("#cmb_estado", { visible: true });
-  await page.select("#cmb_estado", "PE");
+  await page.select("#cmb_estado", uf);
   console.log(`✅  State selected!`);
 
   console.log(`⏳  Selecting city...`);
@@ -33,7 +37,22 @@ export async function GET() {
     ) as HTMLSelectElement;
     return cidadeSelect && cidadeSelect.options.length > 1;
   });
-  await page.select("#cmb_cidade", "5245");
+
+  const cityValue = await page.evaluate((cityName) => {
+    const options = Array.from(
+      document.querySelectorAll("#cmb_cidade option")
+    ) as HTMLOptionElement[];
+    const option = options.find((opt) => opt.textContent?.trim() === cityName);
+    return option ? option.value : null;
+  }, city);
+
+  if (cityValue) {
+    await page.select("#cmb_cidade", cityValue);
+    console.log(`✅  City selected: ${city} (${cityValue})`);
+  } else {
+    console.log(`❌  City "${city}" not found in the dropdown.`);
+  }
+
   console.log(`✅  City selected!`);
 
   await page
