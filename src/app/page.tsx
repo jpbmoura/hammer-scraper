@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingMessages from "@/components/ui/loading-message";
 import {
   Table,
   TableBody,
@@ -40,9 +41,7 @@ const Home = () => {
 
       <div className="w-full">
         {loading ? (
-          <div className="text-center">
-            <p>Carregando...</p>
-          </div>
+          <LoadingMessages />
         ) : (
           <Table className="w-full items-center justify-items-center">
             <TableCaption>
